@@ -2,7 +2,6 @@
 
 var path = process.cwd();
 var ClickHandler = require(path + '/app/controllers/clickHandler.server.js');
-
 module.exports = function (app, passport) {
 
 	function isLoggedIn (req, res, next) {
@@ -14,11 +13,16 @@ module.exports = function (app, passport) {
 	}
 
 	var clickHandler = new ClickHandler();
-
-	app.route('/')
-		.get(isLoggedIn, function (req, res) {
-			res.sendFile(path + '/public/index.html');
-		});
+		
+	app.get('/', function(req, res) {
+		var whoami = { "ipaddress": null, "language": null, "software": null};
+		var software = req.headers["user-agent"].match(/\(.+\)/)[0];
+		var language = req.headers['accept-language'].match(/.+,/)[0];
+		whoami.software = software.substring(1, software.length - 1);
+		whoami.ipaddress = req.headers["x-forwarded-for"];
+		whoami.language = language.substring(0, language.length - 1);
+		res.send(whoami);
+	});
 
 	app.route('/login')
 		.get(function (req, res) {
